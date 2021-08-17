@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<Page<User>> getAllUsers(PaginationRequest request) {
         if (request.getPage() != null) {
-            Pageable page = PageRequest.of(request.getPage(), request.getItems() != null ? request.getItems() : 10);
+            Pageable page;
+            if (request.getColumnOrder() != null && request.getDirectionOrder() != null) {
+                page = PageRequest.of(request.getPage(), request.getItems() != null ? request.getItems() : 10, request.getDirectionOrder().equals("DESC") ? Sort.by(request.getColumnOrder()).descending() : Sort.by(request.getColumnOrder()).ascending());
+            } else {
+                page = PageRequest.of(request.getPage(), request.getItems() != null ? request.getItems() : 10);
+            }
+
             Page<User> result = userRepository.findAll(page);
             return new ResponseEntity<>(result, HttpStatus.OK);
         } else {
